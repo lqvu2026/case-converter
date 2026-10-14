@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Case Converter</title>
+<meta name="description" content="Convert text between UPPER CASE, lower case, Title Case and more. Works with Vietnamese.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Case Converter">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" type="image/png" href="case-converter-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="case-converter-icon.png">
+<style>
+  :root {
+    --navy: #17305a;
+    --orange: #e8794a;
+    --bg: #eaf7fb;
+    --panel: #e9ecf5;
+    --card: #ffffff;
+    --border: #6b87a6;
+    --btn: #e9ecf5;
+    --muted: #2f6b4f;
+  }
+  :root[data-theme="dark"] {
+    --navy: #e6edf7;
+    --orange: #f0956e;
+    --bg: #0f1a2b;
+    --panel: #18253a;
+    --card: #14203a;
+    --border: #4a6585;
+    --btn: #24344f;
+    --muted: #8fd0b0;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--navy);
+    min-height: 100vh;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  header {
+    background: var(--card);
+    padding: calc(12px + env(safe-area-inset-top)) 20px 12px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .badge {
+    width: 34px; height: 34px; border-radius: 7px; background: var(--navy);
+    color: var(--card); display: grid; place-items: center;
+    font-weight: 800; font-size: 17px; letter-spacing: -1px;
+  }
+  .badge span { color: var(--orange); }
+  h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  h1 em { font-style: normal; color: var(--orange); }
+
+  main { max-width: 760px; margin: 0 auto; padding: 16px 14px 40px; }
+  .editor {
+    background: var(--card); border: 2px solid var(--border); border-radius: 6px;
+    padding: 12px 14px 14px;
+  }
+  textarea {
+    width: 100%; min-height: 220px; resize: vertical; border: 0; outline: 0;
+    background: transparent; color: var(--navy);
+    font: inherit; font-size: 20px; line-height: 1.5;
+  }
+  textarea::placeholder { color: var(--navy); opacity: .45; }
+  .bar { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+  .tools { display: flex; gap: 10px; }
+  .tool {
+    width: 52px; height: 52px; border: 0; border-radius: 6px; background: var(--btn);
+    color: var(--navy); display: grid; place-items: center; cursor: pointer; position: relative;
+  }
+  .tool:active { transform: scale(.95); }
+  .tool svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .counts { text-align: right; font-size: 17px; line-height: 1.45; color: var(--muted); }
+
+  .cases { background: var(--panel); margin-top: 14px; padding: 14px; border-radius: 6px; display: flex; flex-wrap: wrap; gap: 12px; }
+  .case {
+    display: inline-flex; align-items: center; gap: 12px; border: 0; cursor: pointer;
+    background: var(--card); color: var(--navy); border-radius: 4px;
+    padding: 9px 18px 9px 10px; font: inherit; font-size: 21px;
+  }
+  .case:active { transform: scale(.97); }
+  .case i {
+    font-style: normal; font-size: 17px; width: 38px; height: 38px; border-radius: 3px;
+    display: grid; place-items: center; font-weight: 500;
+  }
+  .sc i { background: #fdeadf; color: #b9501f; }
+  .lc i { background: #eaf4dc; color: #4f7a1a; }
+  .uc i { background: #e1f4fb; color: #1d6f93; }
+  .cc i { background: #efe3fb; color: #7a2fc0; }
+  .ac i { background: #fbf6d3; color: #8a6d0c; }
+  .tc i { background: #dcf6ea; color: #1b8a5a; }
+  .ic i { background: #fbe2f3; color: #a0207a; }
+
+  .row { display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+  .link { background: none; border: 0; color: var(--navy); font: inherit; font-size: 16px; text-decoration: underline; cursor: pointer; padding: 6px 2px; }
+  .link[hidden] { display: none; }
+  .settings { margin-top: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; font-size: 17px; }
+  .settings[hidden] { display: none; }
+  .settings label { display: flex; align-items: center; gap: 10px; padding: 6px 0; cursor: pointer; }
+  .settings input { width: 20px; height: 20px; accent-color: var(--orange); }
+  .toast {
+    position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px);
+    background: var(--navy); color: var(--card); padding: 10px 18px; border-radius: 22px;
+    font-size: 16px; opacity: 0; pointer-events: none; transition: .25s;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+<header>
+  <div class="badge">A<span>a</span></div>
+  <h1>case <em>converter</em></h1>
+</header>
+
+<main>
+  <div class="editor">
+    <textarea id="text" placeholder="Type or paste your text here…" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea>
+    <div class="bar">
+      <div class="tools">
+        <button class="tool" id="copy" aria-label="Copy text" title="Copy">
+          <svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2"/></svg>
+        </button>
+        <button class="tool" id="share" aria-label="Share text" title="Share">
+          <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg>
+        </button>
+        <button class="tool" id="download" aria-label="Download as .txt" title="Download .txt">
+          <svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>
+        </button>
+        <button class="tool" id="clear" aria-label="Clear text" title="Clear">
+          <svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+        </button>
+        <button class="tool" id="gear" aria-label="Settings" title="Settings">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        </button>
+      </div>
+      <div class="counts" aria-live="polite">
+        <div>Character Count: <span id="cChars">0</span></div>
+        <div>Word Count: <span id="cWords">0</span></div>
+        <div>Line Count: <span id="cLines">0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cases">
+    <button class="case sc" data-mode="sentence"><i>Sc</i>Sentence case</button>
+    <button class="case lc" data-mode="lower"><i>lc</i>lower case</button>
+    <button class="case uc" data-mode="upper"><i>UC</i>UPPER CASE</button>
+    <button class="case cc" data-mode="capitalized"><i>CC</i>Capitalized Case</button>
+    <button class="case ac" data-mode="alternating"><i>aC</i>aLtErNaTiNg cAsE</button>
+    <button class="case tc" data-mode="title"><i>TC</i>Title Case</button>
+    <button class="case ic" data-mode="inverse"><i>iC</i>InVeRsE CaSe</button>
+  </div>
+
+  <div class="row"><button class="link" id="undo" hidden>↶ Undo last conversion</button></div>
+
+  <div class="settings" id="settings" hidden>
+    <label><input type="checkbox" id="optRemember"> Remember my text on this device</label>
+    <label><input type="checkbox" id="optDark"> Dark theme</label>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var ta = $('text');
+  var LOCALE = undefined; // default locale; Vietnamese diacritics convert correctly
+  var SMALL = new Set(['a','an','the','and','but','or','nor','for','so','yet','as','at','by','in','of','on','to','up','via','from','with','into','over']);
+  var undoStack = null;
+
+  // ---------- storage helpers (may throw in private mode) ----------
+  function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function drop(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
+  // ---------- case logic ----------
+  var up = function (s) { return s.toLocaleUpperCase(LOCALE); };
+  var low = function (s) { return s.toLocaleLowerCase(LOCALE); };
+  var WORD = /[\p{L}\p{N}][\p{L}\p{N}\p{M}'’]*/gu;
+
+  function capWord(w) {
+    var chars = Array.from(w);
+    // keep combining marks attached to the first letter
+    var first = chars[0], i = 1;
+    while (i < chars.length && /\p{M}/u.test(chars[i])) { first += chars[i]; i++; }
+    return up(first) + low(chars.slice(i).join(''));
+  }
+
+  var modes = {
+    upper: function (s) { return up(s); },
+    lower: function (s) { return low(s); },
+    sentence: function (s) {
+      return low(s).replace(/(^|[.!?…]+[\s"'”’)\]]*|\n+\s*)(\p{L})/gu, function (m, pre, ch) {
+        return pre + up(ch);
+      });
+    },
+    capitalized: function (s) {
+      return s.replace(WORD, capWord);
+    },
+    title: function (s) {
+      var matches = s.match(WORD) || [];
+      var total = matches.length, n = 0;
+      return s.replace(WORD, function (w) {
+        n++;
+        var lw = low(w);
+        if (n !== 1 && n !== total && SMALL.has(lw)) return lw;
+        return capWord(w);
+      });
+    },
+    alternating: function (s) {
+      var flip = false;
+      return Array.from(s).map(function (c) {
+        if (!/\p{L}/u.test(c)) return c;
+        var r = flip ? up(c) : low(c);
+        flip = !flip;
+        return r;
+      }).join('');
+    },
+    inverse: function (s) {
+      return Array.from(s).map(function (c) {
+        var u = up(c), l = low(c);
+        if (c === u && c !== l) return l;
+        if (c === l && c !== u) return u;
+        return c;
+      }).join('');
+    }
+  };
+
+  // ---------- counts ----------
+  function updateCounts() {
+    var v = ta.value;
+    $('cChars').textContent = Array.from(v).length;
+    var t = v.trim();
+    $('cWords').textContent = t ? t.split(/\s+/).length : 0;
+    $('cLines').textContent = v ? v.split(/\r\n|\r|\n/).length : 0;
+    if ($('optRemember').checked) save('cc.text', v);
+  }
+
+  // ---------- UI ----------
+  var toastTimer;
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 1600);
+  }
+
+  document.querySelectorAll('.case').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var v = ta.value;
+      if (!v) { toast('Type or paste some text first'); ta.focus(); return; }
+      undoStack = v;
+      ta.value = modes[b.dataset.mode](v.normalize('NFC'));
+      $('undo').hidden = false;
+      updateCounts();
+    });
+  });
+
+  $('undo').addEventListener('click', function () {
+    if (undoStack === null) return;
+    ta.value = undoStack; undoStack = null;
+    $('undo').hidden = true;
+    updateCounts();
+  });
+
+  $('copy').addEventListener('click', function () {
+    var v = ta.value;
+    if (!v) { toast('Nothing to copy'); return; }
+    var done = function () { toast('Copied'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(v).then(done, function () { fallbackCopy(v); done(); });
+    } else { fallbackCopy(v); done(); }
+  });
+  function fallbackCopy(v) {
+    ta.focus(); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    ta.setSelectionRange(v.length, v.length);
+  }
+
+  $('share').addEventListener('click', function () {
+    var v = ta.value;
+    if (!v) { toast('Nothing to share'); return; }
+    if (navigator.share) { navigator.share({ text: v }).catch(function () {}); }
+    else { $('copy').click(); }
+  });
+
+  $('download').addEventListener('click', function () {
+    var v = ta.value;
+    if (!v) { toast('Nothing to download'); return; }
+    var blob = new Blob([v], { type: 'text/plain;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'case-converter.txt';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+
+  $('clear').addEventListener('click', function () {
+    if (!ta.value) return;
+    undoStack = ta.value;
+    ta.value = '';
+    $('undo').hidden = false;
+    updateCounts(); ta.focus();
+  });
+
+  $('gear').addEventListener('click', function () {
+    var s = $('settings'); s.hidden = !s.hidden;
+  });
+
+  $('optRemember').addEventListener('change', function () {
+    if (this.checked) { save('cc.remember', '1'); save('cc.text', ta.value); }
+    else { drop('cc.remember'); drop('cc.text'); }
+  });
+  $('optDark').addEventListener('change', function () {
+    var dark = this.checked;
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', dark ? '#14203a' : '#ffffff');
+    save('cc.dark', dark ? '1' : '0');
+  });
+
+  ta.addEventListener('input', function () { $('undo').hidden = true; undoStack = null; updateCounts(); });
+
+  // ---------- init ----------
+  if (load('cc.dark') === '1') { $('optDark').checked = true; $('optDark').dispatchEvent(new Event('change')); }
+  if (load('cc.remember') === '1') {
+    $('optRemember').checked = true;
+    ta.value = load('cc.text') || '';
+  }
+  updateCounts();
+})();
+</script>
+</body>
+</html>
