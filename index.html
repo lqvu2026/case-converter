@@ -44,8 +44,10 @@
   header {
     background: var(--card);
     padding: calc(12px + env(safe-area-inset-top)) 20px 12px;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
   }
+  .brand { display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .tagline { margin: 0; max-width: 560px; text-align: center; font-size: 14.5px; line-height: 1.4; color: var(--navy); opacity: .75; }
   .badge {
     width: 34px; height: 34px; border-radius: 7px; background: var(--navy);
     color: var(--card); display: grid; place-items: center;
@@ -122,8 +124,11 @@
 </head>
 <body>
 <header>
-  <div class="badge">A<span>a</span></div>
-  <h1>case <em>converter</em></h1>
+  <div class="brand">
+    <div class="badge">A<span>a</span></div>
+    <h1>case <em>converter</em></h1>
+  </div>
+  <p class="tagline">Type or paste your text, then tap a button below to change its case. Works with Vietnamese. Use the icons to copy, share, download or clear.</p>
 </header>
 
 <main>
