@@ -95,6 +95,16 @@
   .tc i { background: #dcf6ea; color: #1b8a5a; }
   .ic i { background: #fbe2f3; color: #a0207a; }
 
+  /* Phones in portrait: smaller buttons, two per row */
+  @media (max-width: 520px) {
+    .cases { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 10px; }
+    .case {
+      font-size: clamp(12.5px, 3.5vw, 15px); gap: 7px; padding: 6px 6px 6px 6px;
+      line-height: 1.15; min-width: 0; text-align: left;
+    }
+    .case i { font-size: 13px; width: 28px; height: 28px; flex: none; }
+  }
+
   .row { display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
   .link { background: none; border: 0; color: var(--navy); font: inherit; font-size: 16px; text-decoration: underline; cursor: pointer; padding: 6px 2px; }
   .link[hidden] { display: none; }
